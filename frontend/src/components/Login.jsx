@@ -5,17 +5,23 @@ import axios from '../api/axios';
 const Login = () => {
   const [email,setEmail] = useState("");
   const [password,setPassword] = useState("");
+  const [errors,setErrors] = useState([]);
   const navigate = useNavigate();
+
+  const csrf = () => axios.get('/sanctum/csrf-cookie')
 
   const handleLogin = async (event)=>{
     event.preventDefault();
+    await csrf();
     try{
       await axios.post('/login',{email,password});
       setEmail("");
       setPassword("");
       navigate('/')
     }catch(e){
-      console.log(e);
+      if(e.response.status === 422){
+        setErrors(e.response.data.errors);
+      }
     }
 
 
@@ -39,9 +45,10 @@ return (
                                 className='bordder-[#E9EDF4] w-full rounded-md border bg-[#FCFDFE]
              py-3 px-5 text-base text-body-color placeholder-[#ACB6BE]
              outline-none focus:border-primary focus-visible:shadow-none' />
+                            {errors.email && 
                             <div className='flex'>
-                                <span className='text-red-400 text-sm m-2 p-2'>errors</span>
-                            </div>
+                                <span className='text-red-400 text-sm m-2 p-2'>{errors.email[0]}</span>
+                            </div>}
                         </div>
                         <div className='mb-4'>
                             <input type="password" 
@@ -56,9 +63,11 @@ return (
                           outline-none
                           focus:border-primary
                           focus-visible:shadow-none' />
+
+                            {errors.password &&
                             <div className='flex'>
-                                <span className='text-red-400 text-sm m-2 p-2'>errors</span>
-                            </div>
+                                <span className='text-red-400 text-sm m-2 p-2'>{errors.password[0]}</span>
+                            </div>}
                         </div>
                         <div className='mb-10'>
                           <button type='submit' 
